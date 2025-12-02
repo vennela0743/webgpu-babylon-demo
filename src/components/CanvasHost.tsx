@@ -107,9 +107,11 @@ export default function CanvasHost() {
     cam.attachControl(canvas, true);
     cam.lowerRadiusLimit = 0.05;
     cam.upperRadiusLimit = 1500;
-    cam.wheelDeltaPercentage = 0.008;
-    cam.panningSensibility = 150;
-    cam.inertia = 0.9;
+    cam.wheelDeltaPercentage = 0.006;
+    cam.panningSensibility = 200;
+    cam.inertia = 0.75;
+    cam.angularSensibilityX = 2200;
+    cam.angularSensibilityY = 2200;
     cam.minZ = 0.01;
     cam.maxZ = 2000;
     cameraLocalRef.current = cam;
