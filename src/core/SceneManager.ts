@@ -441,15 +441,6 @@ class SceneManager {
 
   }
 
-  setQuality(q: Quality) {
-  }
-
-  toggleWater(on: boolean) {
-  }
-
-  setSnap(meters: number) {
-  }
-
   isInitialized(): boolean {
     return this.inited;
   }
