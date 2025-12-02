@@ -1,9 +1,10 @@
 # Babylon WebGPU Demo
 
-An interactive architectural viewer built with **Babylon.js**, **React**, and **WebGPU**.  
-It renders the Wells Fargo tower and the Alsop bridge, lets you rotate/pan/zoom with smooth camera controls, and includes model highlighting plus a minimal HUD.
+An interactive 3D architectural viewer built with Babylon.js, React, and WebGPU.
+This project showcases the Wells Fargo Tower and Alsop Bridge rendered with smooth and intuitive camera controls for rotating, panning, and zooming.
+It features a clean, minimal interface and supports model highlighting for better visualization.
 
-> **WebGPU requirement**: run on Chrome/Edge ≥121 (or Safari ≥17.4). The dev server and production builds send the required COOP/COEP headers so you do **not** need to enable the “Unsafe WebGPU” flag.
+> **WebGPU requirement**: Works on Chrome/Edge ≥121 (or Safari ≥17.4). 
 
 ---
 
@@ -109,4 +110,3 @@ You can also serve `dist/` from any static host (Netlify, Cloudflare, nginx) as 
 | Zoom | Scroll wheel |
 | Focus model | Click a model (anchor animates camera) |
 
-Happy hacking! Feel free to extend `MODELS` with additional GLBs or hook into the store for richer UI controls. If you deploy publicly, share the URL! 🚀
