@@ -1,73 +1,112 @@
-# React + TypeScript + Vite
+# Babylon WebGPU Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive architectural viewer built with **Babylon.js**, **React**, and **WebGPU**.  
+It renders the Wells Fargo tower and the Alsop bridge, lets you rotate/pan/zoom with smooth camera controls, and includes model highlighting plus a minimal HUD.
 
-Currently, two official plugins are available:
+> **WebGPU requirement**: run on Chrome/Edge ≥121 (or Safari ≥17.4). The dev server and production builds send the required COOP/COEP headers so you do **not** need to enable the “Unsafe WebGPU” flag.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
+- Pure WebGPU rendering via Babylon’s `WebGPUEngine`
+- Automatic model loading and scaling from `public/assets/*.glb`
+- Smooth camera controls with click-to-focus and snap-to-grid options
+- Outline-based hover highlighting (fallback when highlight shaders aren’t available)
+- Zustand store powering the control panel (quality, snap distance, selected model)
+- Ready for Vercel deployment with `npm run build`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Path | Purpose |
+| --- | --- |
+| `src/App.tsx` | Mounts the canvas (`CanvasHost`) and overlay UI (`ControlsPanel`). |
+| `src/components/CanvasHost.tsx` | Sets up the WebGPU engine, camera, lights; loads models; wires pointer interactions. |
+| `src/core/SceneManager.ts` | Alt. scene manager used by utilities/tests (kept for reference). |
+| `src/core/sceneControls.ts` | Camera helpers (`focusModel`, `resetView`, `toggleWireframe`). |
+| `src/core/models.config.ts` | Declarative list of GLB models (file name, position, fit size, rotation). |
+| `src/state/store.ts` | Zustand store for UI state (quality, snap meters, engine badge, etc.). |
+| `public/assets` | The GLB files that are loaded at runtime. |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Key Functions & Hooks
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### `initScene(canvas)` – `CanvasHost.tsx`
+1. Checks `navigator.gpu`, creates a `WebGPUEngine`, and configures Babylon scene + lights.
+2. Tunes the `ArcRotateCamera` (wheel, pan, rotation sensitivities).
+3. Creates the highlight/outline infrastructure and registers resize + pointer listeners.
+4. Calls `loadModels(scene, MODELS, camera, highlightLayer, anchors)` to bring in GLBs.
+
+### `loadModels(...)`
+- Loads each GLB via `LoadAssetContainerAsync`.
+- Computes bounds to auto-scale and center each model around its anchor.
+- Repairs UVs only if missing/invalid (fixes the bridge appearance).
+- Registers hover/pick actions that interact with the highlight fallback and `focusModel`.
+
+### `sceneControls.ts`
+- `focusModel(name)` animates the camera to the model’s bounds.
+- `resetView()` resets the orbit view.
+- `toggleWireframe(enabled)` toggles wireframe on every mesh.
+
+### Zustand actions (`src/state/store.ts`)
+- `setQuality`, `setWater`, `setSnap`, `setSelected`, `setWireframe`, `setEngineType`.
+These keep React UI state synchronized with camera tweaks inside Babylon.
+
+---
+
+## Getting Started
+
+```bash
+# 1. Install
+npm install
+
+# 2. Run dev server (http://localhost:5173)
+npm run dev
+
+# 3. Build production bundle
+npm run build
+
+# 4. Preview the built bundle with the same headers as prod
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Node version
+Use Node 20+ . Earlier versions may lack WebGPU polyfills.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Cross-Origin Isolation
+`vite.config.ts` injects the headers below for both `dev` and `preview` so WebGPU works without Chrome flags:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+If you switch to another HTTP server (nginx, S3, etc.) ensure these two headers are set.
+
+---
+
+## Deployment (Vercel example)
+
+1. Push the repo to GitHub.
+2. In Vercel, **Import Project → GitHub → this repo**.
+3. Framework preset: `Vite` (detected automatically).  
+   Build command: `npm run build` · Output dir: `dist`.
+4. Leave “Root Directory” empty (project lives at repo root).
+5. Deploy – Vercel builds and serves `dist/` with the correct headers.
+
+You can also serve `dist/` from any static host (Netlify, Cloudflare, nginx) as long as you keep the COOP/COEP headers.
+
+---
+
+## Controls Cheat Sheet
+
+| Action | Input |
+| --- | --- |
+| Orbit | Left mouse drag |
+| Pan | Right mouse drag |
+| Zoom | Scroll wheel |
+| Focus model | Click a model (anchor animates camera) |
+
+Happy hacking! Feel free to extend `MODELS` with additional GLBs or hook into the store for richer UI controls. If you deploy publicly, share the URL! 🚀
