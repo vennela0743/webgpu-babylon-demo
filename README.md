@@ -88,18 +88,7 @@ If you switch to another HTTP server (nginx, S3, etc.) ensure these two headers 
 
 ---
 
-## Deployment (Vercel example)
 
-1. Push the repo to GitHub.
-2. In Vercel, **Import Project → GitHub → this repo**.
-3. Framework preset: `Vite` (detected automatically).  
-   Build command: `npm run build` · Output dir: `dist`.
-4. Leave “Root Directory” empty (project lives at repo root).
-5. Deploy – Vercel builds and serves `dist/` with the correct headers.
-
-You can also serve `dist/` from any static host (Netlify, Cloudflare, nginx) as long as you keep the COOP/COEP headers.
-
----
 
 ## Controls Cheat Sheet
 
